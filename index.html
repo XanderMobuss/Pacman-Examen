@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pacman</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <canvas id="my_canvas"></canvas>
+    <script type="text/javascript">
+        const my_canvas = document.getElementById('my_canvas');
+        const ctx = my_canvas.getContext('2d');
+    
+        const fondoJuego = new Image();
+        fondoJuego.src = 'fondoo.jfif';
+        const instructivo = new Image();
+        instructivo.src = 'instructivo.png';
+
+        let speed = 1;
+        let direction = "";
+        let score = 0;
+
+
+
+        const mapa = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1],
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1],
+            [0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0 ,0 ,1, 0 ,1, 0, 0, 0],
+            [1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1 ,0 ,1 ,1 ,1, 1],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1],
+            [0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0],
+            [1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
+            [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+            [1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1],
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            [1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ];
+
+       
+        const tileSize = 40;
+
+        function resizeCanvas() {
+            my_canvas.width = window.innerWidth;
+            my_canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+    
+
+        
+        class Rectangulo {
+            constructor(x, y, w, h, c,img=null) {
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+                this.c = c;
+                this.img=img;
+            }
+            draw() {
+                ctx.fillStyle = this.c;
+                ctx.fillRect(this.x, this.y, this.w, this.h);
+                
+            }
+
+            tocando(otro) {
+                return (this.x < otro.x + otro.w &&
+                    this.x + this.w > otro.x &&
+                    this.y < otro.y + otro.h &&
+                    this.y + this.h > otro.y);
+            }
+        }
+
+        document.addEventListener("keydown", function (e) {
+            switch (e.keyCode) {
+                case 65: direction = "left"; break;
+                case 87: direction = "up"; break;
+                case 68: direction = "right"; break;
+                case 83: direction = "down"; break;
+                case 32: speed += 0.5; break;
+                
+            }
+        });
+
+        
+        
+
+        function update() {
+
+            switch (direction) {
+                case "left": player.x -=  speed; break;
+                case "up": player.y -=  speed; break;
+                case "right": player.x += speed; break;
+                case "down": player.y +=  speed; break;
+            }
+
+         
+            if (player.x <745 && player.y > 507) player.x = 1472;
+            if (player.x > 1473 && player.y > 507) player.x = 746;
+        
+            
+            
+           
+           
+
+            
+            for (let row = 0; row < mapa.length; row++) {
+                for (let col = 0; col < mapa[row].length; col++) {
+                    if (mapa[row][col] === 1) {
+                        let muro = new Rectangulo(col * tileSize+750, row * tileSize+150, tileSize, tileSize, "blue");
+                        if (player.tocando(muro)) {
+                            switch (direction) {
+                                case "left": player.x +=  speed; break;
+                                case "up": player.y +=  speed; break;
+                                case "right": player.x -=  speed; break;
+                                case "down": player.y -=  speed; break;
+                            }
+                            direction = "";
+                        }
+                    }
+                }
+            }
+        }
+
+        function pintar() {
+            
+
+            
+
+           
+            ctx.drawImage(fondoJuego,0,0,my_canvas.width, my_canvas.height);
+
+            ctx.drawImage(instructivo,100,150,400,900);
+
+
+            ctx.fillStyle="black";
+            ctx.fillRect(750,150,760,800);
+            
+            for (let row = 0; row < mapa.length; row++) {
+                for (let col = 0; col < mapa[row].length; col++) {
+                    if (mapa[row][col] === 1) {
+                        let muro = new Rectangulo(col * tileSize+750, row * tileSize+150, tileSize, tileSize, "red");
+                        muro.draw();
+                    }
+                }
+            }
+
+            
+            player.draw();
+            
+            
+
+            update();
+            requestAnimationFrame(pintar);
+        }
+
+       
+        const player = new Rectangulo(1110, 750, 40, 40,"blue");
+        
+
+        
+        
+
+        requestAnimationFrame(pintar);
+    </script>
+</body>
+
+</html>
