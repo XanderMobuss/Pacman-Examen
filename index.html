@@ -10,7 +10,12 @@
 
 <body>
     <canvas id="my_canvas"></canvas>
+    <audio id="tomarMoneda" src="tomarMoneda.m4a" preload="auto"></audio>
+    <audio id="comerFantasmas" src="comerFantasmas.mp3" preload="auto"></audio>
     <script type="text/javascript">
+        const tomarMoneda = document.getElementById('tomarMoneda');
+        const comerFantasmas = document.getElementById('comerFantasmas');
+
         const my_canvas = document.getElementById('my_canvas');
         const ctx = my_canvas.getContext('2d');
     
@@ -18,30 +23,61 @@
         fondoJuego.src = 'fondoo.jfif';
         const instructivo = new Image();
         instructivo.src = 'instructivo.png';
+        const muroct = new Image();
+        muroct.src = 'muroct.jfif';
+        const fondonata = new Image();
+        fondonata.src = 'fondonata.webp';
+        const jugadorfot = new Image();
+        jugadorfot.src = 'jugadorfot.png';
+        const enemigofot = new Image();
+        enemigofot.src = 'enemigofot.png';
+        const enemigo1fot = new Image();
+        enemigo1fot.src = 'enemigo1fot.png';
+        const enemigo2fot = new Image();
+        enemigo2fot.src = 'enemigo2fot.png';
+        const enemigo3fot = new Image();
+        enemigo3fot.src = 'enemigo3fot.png';
+        const moneda = new Image();
+        moneda.src = 'moneda.webp';
+        const powerup = new Image();
+        powerup.src = 'powerup.jpg';
+        
 
         let speed = 1;
         let direction = "";
         let score = 0;
+        let anteriorDir = "";
+        let bloqueadoDir = "";
+        
 
+        function reproducirAudio(src, inicio, duracion, volumen = 1) {
+            const audioPuesto = new Audio(src); 
+            audioPuesto.volume = volumen;  
+            audioPuesto.currentTime = inicio; 
+            audioPuesto.play(); 
 
+            setTimeout(() => {
+                audioPuesto.pause(); 
+            }, duracion * 1000);
+        }
 
         const mapa = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
+            [1, 2, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 2, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1],
             [1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1],
-            [0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0 ,0 ,1, 0 ,1, 0, 0, 0],
-            [1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1 ,0 ,1 ,1 ,1, 1],
-            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1],
-            [0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0],
-            [1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1],
+            [1, 1, 1, 1, 0, 1, 1, 1, 9, 1, 9, 1, 1, 1, 0, 1, 1, 1, 1],
+            [1, 1, 1, 1, 0, 1, 9, 9, 9, 9, 9, 9 ,9 ,1, 0 ,1, 1, 1, 1],
+            [1, 1, 1, 1, 0, 1, 9, 1, 9, 9, 9, 1, 9, 1 ,0 ,1 ,1 ,1, 1],
+            [9, 9, 9, 9, 0, 9, 9, 1, 9, 9, 9, 1, 9, 9, 0, 9, 9, 9, 9],
+            [1, 1, 1, 1, 0, 1, 9, 1, 1, 1, 1, 1, 9, 1, 0, 1, 1, 1, 1],
+            [1, 1, 1, 1, 0, 1, 9, 9, 9, 9, 9, 9, 9, 1, 0, 1, 1, 1, 1],
+            [1, 1, 1, 1, 0, 1, 9, 1, 1, 1, 1, 1, 9, 1, 0, 1, 1, 1, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
-            [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+            [1, 2, 0, 1, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 1, 0, 2, 1],
             [1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1],
             [1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
             [1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1],
@@ -64,18 +100,22 @@
 
         
         class Rectangulo {
-            constructor(x, y, w, h, c,img=null) {
+            constructor(x, y, w, h, c,img=null, direccion) {
                 this.x = x;
                 this.y = y;
                 this.w = w;
                 this.h = h;
                 this.c = c;
                 this.img=img;
+                this.direccion=direccion;
             }
             draw() {
-                ctx.fillStyle = this.c;
-                ctx.fillRect(this.x, this.y, this.w, this.h);
-                
+                if (this.img) {
+                    ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
+                } else {
+                    ctx.fillStyle = this.c;
+                    ctx.fillRect(this.x, this.y, this.w, this.h);
+                }
             }
 
             tocando(otro) {
@@ -92,75 +132,183 @@
                 case 87: direction = "up"; break;
                 case 68: direction = "right"; break;
                 case 83: direction = "down"; break;
-                case 32: speed += 0.5; break;
+                    
+
                 
             }
         });
+
+        function aleatorio() {
+            const direcciones = ["left", "up", "right", "down"];
+            return direcciones[Math.floor(Math.random() * direcciones.length)];
+        }
 
         
         
 
         function update() {
 
+            let sepuedeMover = true;
+            
             switch (direction) {
                 case "left": player.x -=  speed; break;
                 case "up": player.y -=  speed; break;
                 case "right": player.x += speed; break;
                 case "down": player.y +=  speed; break;
+                
+            }
+            switch (enemigo3.direccion) {
+                case "left": enemigo3.x -=  speed; break;
+                case "up": enemigo3.y -=  speed; break;
+                case "right": enemigo3.x += speed; break;
+                case "down": enemigo3.y +=  speed; break;
+                
             }
 
+            switch (enemigo2.direccion) {
+                case "left": enemigo2.x -=  speed; break;
+                case "up": enemigo2.y -=  speed; break;
+                case "right": enemigo2.x += speed; break;
+                case "down": enemigo2.y +=  speed; break;
+                
+            }
+
+            switch (enemigo1.direccion) {
+                case "left": enemigo1.x -=  speed; break;
+                case "up": enemigo1.y -=  speed; break;
+                case "right": enemigo1.x += speed; break;
+                case "down": enemigo1.y +=  speed; break;
+                
+            }
+
+            switch (enemigo.direccion) {
+                case "left": enemigo.x -=  speed; break;
+                case "up": enemigo.y -=  speed; break;
+                case "right": enemigo.x += speed; break;
+                case "down": enemigo.y +=  speed; break;
+                
+            }
+        
          
             if (player.x <745 && player.y > 507) player.x = 1472;
             if (player.x > 1473 && player.y > 507) player.x = 746;
-        
-            
-            
-           
-           
-
+ 
             
             for (let row = 0; row < mapa.length; row++) {
                 for (let col = 0; col < mapa[row].length; col++) {
                     if (mapa[row][col] === 1) {
-                        let muro = new Rectangulo(col * tileSize+750, row * tileSize+150, tileSize, tileSize, "blue");
+                        let muro = new Rectangulo(col * tileSize + 750, row * tileSize + 150, tileSize, tileSize, "red",muroct);
+
+
+
                         if (player.tocando(muro)) {
+                            sepuedeMover = false;
+                            bloqueadoDir=direction;
                             switch (direction) {
-                                case "left": player.x +=  speed; break;
-                                case "up": player.y +=  speed; break;
-                                case "right": player.x -=  speed; break;
-                                case "down": player.y -=  speed; break;
+                                case "left": player.x += speed; break;
+                                case "up": player.y += speed; break;
+                                case "right": player.x -= speed; break;
+                                case "down": player.y -= speed; break;
                             }
-                            direction = "";
+                            
+                            direction=anteriorDir;
+                        }
+                        if (enemigo3.tocando(muro)){
+                            switch (enemigo3.direccion) {
+                                case "left": enemigo3.x += speed; break;
+                                case "up": enemigo3.y += speed; break;
+                                case "right": enemigo3.x -= speed; break;
+                                case "down": enemigo3.y -= speed; break;
+                            }
+                            enemigo3.direccion=aleatorio();
+                        }
+                        if (enemigo2.tocando(muro)){
+                            switch (enemigo2.direccion) {
+                                case "left": enemigo2.x += speed; break;
+                                case "up": enemigo2.y += speed; break;
+                                case "right": enemigo2.x -= speed; break;
+                                case "down": enemigo2.y -= speed; break;
+                            }
+                            enemigo2.direccion=aleatorio();
+                        }
+                        if (enemigo1.tocando(muro)){
+                            switch (enemigo1.direccion) {
+                                case "left": enemigo1.x += speed; break;
+                                case "up": enemigo1.y += speed; break;
+                                case "right": enemigo1.x -= speed; break;
+                                case "down": enemigo1.y -= speed; break;
+                            }
+                            enemigo1.direccion=aleatorio();
+                        }
+                        if (enemigo.tocando(muro)){
+                            switch (enemigo.direccion) {
+                                case "left": enemigo.x += speed; break;
+                                case "up": enemigo.y += speed; break;
+                                case "right": enemigo.x -= speed; break;
+                                case "down": enemigo.y -= speed; break;
+                            }
+                            enemigo.direccion=aleatorio();
+                        }
+                    }
+
+                    if (mapa[row][col] === 0){
+                        let monedas = new Rectangulo(col * tileSize+750, row * tileSize+150, 15, 15, "red",moneda);
+                        if(player.tocando(monedas)){
+                            mapa[row][col]=9;
+                            reproducirAudio('tomarMoneda.m4a',0,2,0.3);
+                        }
+                    }
+                    if (mapa[row][col] === 2){
+                        let potenciador = new Rectangulo(col * tileSize+750, row * tileSize+150, tileSize, tileSize, "red",powerup);
+                        if(player.tocando(potenciador)){
+                            mapa[row][col]=9;
+                            reproducirAudio('comerFantasmas.mp3',0,3,0.8);
                         }
                     }
                 }
+            } 
+            if (sepuedeMover) {
+                anteriorDir = direction;
             }
+            
+            
+
         }
 
         function pintar() {
             
 
-            
-
+        
            
             ctx.drawImage(fondoJuego,0,0,my_canvas.width, my_canvas.height);
 
             ctx.drawImage(instructivo,100,150,400,900);
 
 
-            ctx.fillStyle="black";
-            ctx.fillRect(750,150,760,800);
+            ctx.drawImage(fondonata,750,150,760,800)
             
             for (let row = 0; row < mapa.length; row++) {
                 for (let col = 0; col < mapa[row].length; col++) {
                     if (mapa[row][col] === 1) {
-                        let muro = new Rectangulo(col * tileSize+750, row * tileSize+150, tileSize, tileSize, "red");
+                        let muro = new Rectangulo(col * tileSize+750, row * tileSize+150, tileSize, tileSize, "red",muroct);
                         muro.draw();
                     }
+                    if (mapa[row][col] === 0) {
+                        let monedas = new Rectangulo(col * tileSize+750+10, row * tileSize+150+10, 25, 25, "red",moneda);
+                        monedas.draw();
+                    }
+
+                    if (mapa[row][col] === 2) {
+                        let potenciador = new Rectangulo(col * tileSize+750, row * tileSize+150, tileSize, tileSize, "red",powerup);
+                        potenciador.draw();
+                    }
+                    
                 }
             }
-
-            
+            enemigo.draw();
+            enemigo1.draw();
+            enemigo2.draw();
+            enemigo3.draw();
             player.draw();
             
             
@@ -170,11 +318,11 @@
         }
 
        
-        const player = new Rectangulo(1110, 750, 40, 40,"blue");
-        
-
-        
-        
+        const player = new Rectangulo(1110, 750, 40, 40,"blue",jugadorfot,"up");
+        const enemigo = new Rectangulo(1110,510,40,40,"green",enemigofot,"up");
+        const enemigo1 = new Rectangulo(1110,510,40,40,"pink",enemigo1fot,"up");
+        const enemigo2 = new Rectangulo(1110,510,40,40,"red",enemigo2fot,"up");
+        const enemigo3 = new Rectangulo(1110,510,40,40,"orange",enemigo3fot,"up");
 
         requestAnimationFrame(pintar);
     </script>
